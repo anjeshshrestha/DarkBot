@@ -3,8 +3,12 @@ package com.github.manolo8.darkbot.core.entities;
 import com.github.manolo8.darkbot.config.BoxInfo;
 import com.github.manolo8.darkbot.config.ConfigEntity;
 import com.github.manolo8.darkbot.core.api.Capability;
+import com.github.manolo8.darkbot.core.entities.fake.FakeEntities;
+import com.github.manolo8.darkbot.core.entities.fake.FakeExtension;
 import com.github.manolo8.darkbot.utils.Offsets;
+import eu.darkbot.api.game.entities.FakeEntity;
 import eu.darkbot.util.Timer;
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
@@ -25,6 +29,9 @@ public class Box extends Entity implements eu.darkbot.api.game.entities.Box {
 
     public BoxInfo boxInfo;
 
+    private Box(int id) {
+        super(id);
+    }
 
     public Box(int id, long address) {
         super(id);
@@ -109,13 +116,13 @@ public class Box extends Entity implements eu.darkbot.api.game.entities.Box {
     public void update(long address) {
         super.update(address);
 
-        if (traits.size == 0) {
+        if (traits.isEmpty()) {
             boxInfo = new BoxInfo();
             return;
         }
 
-        type = Offsets.getTraitAssetId(traits.get(0));
-        hash = API.readMemoryString(address, 160);
+        type = Offsets.getTraitAssetId(traits.getOrDefault(0, 0));
+        hash = API.readString(address, 160);
 
         if (type.length() > 5) type = type.split(",")[0].replace("box_", "").replace("_box", "");
 
@@ -133,6 +140,44 @@ public class Box extends Entity implements eu.darkbot.api.game.entities.Box {
 
         public Beacon(int id, long address) {
             super(id, address);
+        }
+    }
+
+    @Getter
+    public static class Fake extends Box implements FakeEntity.FakeBox, FakeExtension {
+        private final FakeExtension.Data fakeData = new FakeExtension.Data(this);
+
+        public Fake(BoxInfo box) {
+            super(FakeEntities.allocateFakeId());
+            super.type = box.name;
+            super.boxInfo = box;
+        }
+
+        @Override
+        public boolean isInvalid(long mapAddress) {
+            return fakeData.isInvalid();
+        }
+
+        @Override
+        public boolean tryCollect() {
+            return fakeData.trySelect(false);
+        }
+
+        @Override
+        public boolean trySelect(boolean tryAttack) {
+            return fakeData.trySelect(tryAttack);
+        }
+
+        public String getHash() {
+            return type + locationInfo.getCurrent();
+        }
+
+        @Override
+        public void update() {
+        }
+
+        @Override
+        public void update(long address) {
         }
     }
 }
