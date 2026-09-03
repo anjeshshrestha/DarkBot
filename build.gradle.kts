@@ -1,5 +1,5 @@
 plugins {
-    id("org.gradle.java-library")
+    `java-library`
     id("org.gradle.maven-publish")
     id("org.gradle.application")
 
@@ -16,15 +16,21 @@ repositories {
     mavenLocal()
     mavenCentral()
 
-    maven { url = uri("https://jitpack.io") }
-    maven { url = uri("https://oss.jfrog.org/artifactory/oss-snapshot-local/com/formdev/") }
+    maven("https://jitpack.io")
+    maven("https://oss.jfrog.org/artifactory/oss-snapshot-local/com/formdev/")
 }
 
 group = "eu.darkbot"
 version = "1.131"
 description = "DarkBot"
-java.sourceCompatibility = JavaVersion.VERSION_11
-java.targetCompatibility = JavaVersion.VERSION_11
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+}
 
 application {
     applicationName = "DarkBot"
@@ -39,19 +45,18 @@ publishing {
     }
 }
 
-configurations {
-    compileOnly {
-        isCanBeResolved = true
-    }
+configurations.compileOnly {
+    isCanBeResolved = true
 }
 
 dependencies {
-    val apiVersion = "0.9.7"
+    val apiVersion = "0.9.10"
     val flatLafVersion = "3.4"
 
     // use this if you want to use local(mavenLocal) darkbot API
-    //api("eu.darkbot", "darkbot-impl", apiVersion)
-    api("eu.darkbot.DarkBotAPI", "darkbot-impl", apiVersion)
+    val useLocalMaven = false
+    if (useLocalMaven) api("eu.darkbot", "darkbot-impl", apiVersion)
+    else api("eu.darkbot.DarkBotAPI", "darkbot-impl", apiVersion)
 
     // have to keep version 2.8.9, in newer versions GSON calls `toString` of config enums upon creation
     api("com.google.code.gson", "gson", "2.8.9")

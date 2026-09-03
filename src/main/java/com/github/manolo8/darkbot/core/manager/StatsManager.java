@@ -18,6 +18,8 @@ import lombok.experimental.Accessors;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -85,23 +87,23 @@ public class StatsManager implements Manager, StatsAPI, NativeUpdatable {
 
         if (address == 0) return;
 
-        updateNonZero(credits, readDouble(0x168));
-        updateNonZero(uridium, readDouble(0x170));
-        updateNonZero(experience, readDouble(0x180));
-        checkHonor(updateNonZero(honor, readDouble(0x188)));
+        updateNonZero(credits, readDouble(0x180));
+        updateNonZero(uridium, readDouble(0x188));
+        updateNonZero(experience, readDouble(0x198));
+        checkHonor(updateNonZero(honor, readDouble(0x1A0)));
 
-        cargo.track(readIntHolder(0x138));
-        maxCargo.track(readIntHolder(0x140));
+        cargo.track(readBindableInt(0x148));
+        maxCargo.track(readBindableInt(0x150));
 
-        sid = readString(0xd0);
+        sid = readString(0xE0);
         userId = readInt(0x30);
         if (main.settingsManager.getAddress() != 0) {
             instance = main.settingsManager.readString(0x298);
         }
 
-        novaEnergy.track(readInt(0x108, 0x28));
+        novaEnergy.track(readBindableInt(0x118));
         teleportBonus.track(readInt(0x50));
-        premium = readBoolean(0xF0, 0x20);
+        premium = readBoolean(0x108, 0x20);
 
         for (BootyKeyType key: BootyKeyType.VALUES)
             track(key.getStatKey(), readInt(key.getOffset()));
@@ -121,6 +123,10 @@ public class StatsManager implements Manager, StatsAPI, NativeUpdatable {
 
     private void registerImpl(Key key, StatImpl stat) {
         statistics.put(StatKey.of(key), stat);
+    }
+
+    public static Collection<? extends StatsAPI.Key> getStatKeys() {
+        return new ArrayList<>(Main.INSTANCE.statsManager.statistics.keySet());
     }
 
     @Override
